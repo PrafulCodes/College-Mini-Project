@@ -2,7 +2,7 @@
 Agent service layer for financial recommendations
 Contains business logic for generating financial advice
 """
-
+from typing import Any
 from typing import List, Dict, Tuple
 from schemas.financial import (
     FinancialInputRequest,
@@ -65,11 +65,11 @@ class FinancialAgent:
 
         # Projection agent
         projection_output = generate_three_month_projection(
-            financial_input.monthly_income,
-            self._dict_from_expenses(financial_input.expenses),
-            summary.savings_rate,
-            sum(d.amount for d in financial_input.debts) if financial_input.debts else 0,
-            # Optionally, pass optimized advice here if available
+            income=financial_input.monthly_income,
+            expenses=self._dict_from_expenses(financial_input.expenses),
+            current_savings=getattr(financial_input, "current_savings", 0),
+            debts=[d.dict() if hasattr(d, "dict") else d for d in financial_input.debts],
+            savings_rate=summary.savings_rate
         )
         projection_output["type"] = "projection"
 

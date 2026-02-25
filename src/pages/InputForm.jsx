@@ -1,14 +1,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { analyzeFinancialSituation } from '../services/api'
-import { mockAnalysisResponse } from '../services/mockData'
 import '../styles/InputForm.css'
 
 export default function InputForm() {
   const navigate = useNavigate()
   const [monthlyIncome, setMonthlyIncome] = useState('')
   const [expenses, setExpenses] = useState([{ category: '', amount: '' }])
-  const [debts, setDebts] = useState([{ name: '', amount: '', interestRate: '' }])
+  const [debts, setDebts] = useState([{ name: '', amount: '', interest_rate: '' }])
   const [riskTolerance, setRiskTolerance] = useState('Medium')
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState({})
@@ -37,7 +36,7 @@ export default function InputForm() {
       if (debt.amount && debt.amount < 0) {
         newErrors[`debt_amount_${index}`] = 'Amount cannot be negative'
       }
-      if (debt.interestRate && debt.interestRate < 0) {
+      if (debt.interest_rate && debt.interest_rate < 0) {
         newErrors[`debt_rate_${index}`] = 'Interest rate cannot be negative'
       }
     })
@@ -65,7 +64,7 @@ export default function InputForm() {
 
   // Handle debt row addition
   const addDebtRow = () => {
-    setDebts([...debts, { name: '', amount: '', interestRate: '' }])
+    setDebts([...debts, { name: '', amount: '', interest_rate: '' }])
   }
 
   // Handle debt row removal
@@ -89,27 +88,31 @@ export default function InputForm() {
     }
 
     setLoading(true)
+    let analysisData
 
     try {
       const formData = {
         monthlyIncome: parseFloat(monthlyIncome),
-        expenses: expenses.filter(exp => exp.category || exp.amount),
-        debts: debts.filter(d => d.name || d.amount),
+        expenses: expenses
+          .filter(exp => exp.category && exp.amount)
+          .map(exp => ({
+            ...exp,
+            amount: parseFloat(exp.amount)
+          })),
+        debts: debts
+          .filter(d => d.name && d.amount)
+          .map(d => ({
+            ...d,
+            amount: parseFloat(d.amount),
+            interest_rate: parseFloat(d.interest_rate) || 0
+          })),
         riskTolerance
       }
 
       console.log('Form Data Submitted:', formData)
 
-      // Try to call API, fallback to mock data if API fails
-      let analysisData
-      try {
-        analysisData = await analyzeFinancialSituation(formData)
-        console.log('API Response:', analysisData)
-      } catch (apiError) {
-        console.warn('API call failed, using mock data for demonstration:', apiError)
-        // Use mock data for demonstration
-        analysisData = mockAnalysisResponse
-      }
+      analysisData = await analyzeFinancialSituation(formData)
+      console.log('API Response:', analysisData)
 
       // Save to sessionStorage for dashboard reloads
       sessionStorage.setItem('dashboardData', JSON.stringify(analysisData))
@@ -254,9 +257,9 @@ export default function InputForm() {
                     type="number"
                     id={`debt_rate_${index}`}
                     placeholder="0.00"
-                    value={debt.interestRate}
+                    value={debt.interest_rate}
                     onChange={(e) =>
-                      handleDebtChange(index, 'interestRate', e.target.value)
+                      handleDebtChange(index, 'interest_rate', e.target.value)
                     }
                     min="0"
                     step="0.01"

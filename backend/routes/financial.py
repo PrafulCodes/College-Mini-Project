@@ -36,7 +36,7 @@ def get_financial_agent() -> FinancialAgent:
     return create_financial_agent()
 
 
-@financial_router.post("/analyze", response_model=ExtendedAnalysisResponse)
+@financial_router.post("/analyze", response_model=ExtendedAnalysisResponse, response_model_by_alias=True)
 async def analyze_financial_situation(
     request: FinancialInputRequest,
     agent: FinancialAgent = Depends(get_financial_agent)
@@ -171,7 +171,7 @@ async def validate_input(request: FinancialInputRequest) -> Dict[str, Any]:
         }
 
 
-@financial_router.get("/plan/{user_id}", response_model=StoredPlan)
+@financial_router.get("/plan/{user_id}", response_model=StoredPlan, response_model_by_alias=True)
 async def get_plan(
     user_id: int = Path(..., gt=0, description="Unique user identifier")
 ) -> StoredPlan:
@@ -238,7 +238,7 @@ async def get_plan(
         )
 
 
-@financial_router.post("/plan/{user_id}", response_model=PlanResponse)
+@financial_router.post("/plan/{user_id}", response_model=PlanResponse, response_model_by_alias=True)
 async def save_plan(
     user_id: int = Path(..., gt=0, description="Unique user identifier"),
     save_request: SavePlanRequest = None
@@ -326,7 +326,7 @@ async def save_plan(
         )
 
 
-@financial_router.delete("/plan/{user_id}", response_model=PlanResponse)
+@financial_router.delete("/plan/{user_id}", response_model=PlanResponse, response_model_by_alias=True)
 async def delete_plan(
     user_id: int = Path(..., gt=0, description="Unique user identifier")
 ) -> PlanResponse:
